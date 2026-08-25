@@ -24,8 +24,8 @@ const jobs = new Map();
 async function startBatchJob() {
   const jobId = `job_${crypto.randomBytes(4).toString('hex')}`;
 
-  // Count cases that need processing (limited to 2 for testing)
-  const caseIds = await Case.find({ status: 'new' }).limit(2).select('_id').lean();
+  // Count cases that need processing
+  const caseIds = await Case.find({ status: 'new' }).select('_id').lean();
   const total = caseIds.length;
 
   if (total === 0) {
@@ -52,31 +52,20 @@ async function processBatch(jobId, caseIds) {
   const CHUNK_SIZE = 5;
   const job = jobs.get(jobId);
 
-  for (let i = 0; i < caseIds.length; i += CHUNK_SIZE) {
-    const chunk = caseIds.slice(i, i + CHUNK_SIZE);
-
-    const results = await Promise.allSettled(
-      chunk.map(caseId => processCase(caseId))
-    );
-
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        if (result.value === null) {
-          // Case was already claimed by another job — skipped
-          job.skipped++;
-        } else {
-          job.completed++;
-        }
+  for (const caseId of caseIds) {
+    try {
+      const result = await processCase(caseId);
+      if (result === null) {
+        job.skipped++;
       } else {
-        job.failed++;
-        console.error(`[JobManager] Case failed:`, result.reason);
+        job.completed++;
       }
+    } catch (error) {
+      job.failed++;
+      console.error(`[JobManager] Case failed:`, error);
     }
-
-    // Small delay between chunks to be gentle on API rate limits
-    if (i + CHUNK_SIZE < caseIds.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
+    // Delay of 2 seconds between cases to avoid Gemini free-tier burst limits
+    await new Promise(resolve => setTimeout(resolve, 2000));
   }
 
   job.status = 'completed';

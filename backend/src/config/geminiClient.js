@@ -4,13 +4,22 @@ const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
 const MODEL_DEFAULT = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const MODEL_FALLBACK = 'gemini-3.5-flash-lite';
 
-let genAI = null;
+const clients = {
+  diagnosis: null,
+  value: null,
+  planner: null
+};
 
-function getGenAI() {
-  if (!genAI) {
-    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+function getGenAI(agentName = 'diagnosis') {
+  if (!clients[agentName]) {
+    let key = process.env.GEMINI_API_KEY_DIAGNOSIS;
+    if (agentName === 'value') key = process.env.GEMINI_API_KEY_VALUE;
+    if (agentName === 'planner') key = process.env.GEMINI_API_KEY_PLANNER;
+    
+    // Fallback to diagnosis key if others are missing
+    clients[agentName] = new GoogleGenerativeAI(key || process.env.GEMINI_API_KEY_DIAGNOSIS || '');
   }
-  return genAI;
+  return clients[agentName];
 }
 
 /**
@@ -24,8 +33,8 @@ function getGenAI() {
  * @returns {Promise<object>} Parsed JSON response from Gemini
  * @throws {Error} If both attempts fail
  */
-async function callGemini({ systemPrompt, userPrompt, responseSchema, modelName = MODEL_DEFAULT }) {
-  const client = getGenAI();
+async function callGemini({ systemPrompt, userPrompt, responseSchema, modelName = MODEL_DEFAULT, agentName = 'diagnosis' }) {
+  const client = getGenAI(agentName);
 
   const getModelInstance = (mName) => client.getGenerativeModel({
     model: mName,

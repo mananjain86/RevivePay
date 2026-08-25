@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     if (req.query.status) {
       filter.status = req.query.status;
     }
-    const cases = await Case.find(filter).sort({ updatedAt: -1 }).limit(5);
+    const cases = await Case.find(filter).sort({ updatedAt: -1 });
     res.json(cases);
   } catch (error) {
     console.error('[Cases] Error fetching cases:', error);

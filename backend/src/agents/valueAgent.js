@@ -68,7 +68,8 @@ async function assessValue(caseData) {
     const result = await callGemini({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      responseSchema: VALUE_SCHEMA
+      responseSchema: VALUE_SCHEMA,
+      agentName: 'value'
     });
 
     return validateValueAssessment(result, caseData);

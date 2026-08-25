@@ -87,7 +87,8 @@ Value Assessment:
     const result = await callGemini({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      responseSchema: PLANNER_SCHEMA
+      responseSchema: PLANNER_SCHEMA,
+      agentName: 'planner'
     });
 
     return validatePlan(result);

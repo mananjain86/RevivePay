@@ -66,7 +66,8 @@ async function diagnoseCase(caseData) {
     const result = await callGemini({
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      responseSchema: DIAGNOSIS_SCHEMA
+      responseSchema: DIAGNOSIS_SCHEMA,
+      agentName: 'diagnosis'
     });
 
     // Code-side validation (second layer of defense after Gemini's responseSchema)
