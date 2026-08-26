@@ -2,7 +2,8 @@
  * API client — fetch wrappers for all backend endpoints.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const envUrl = import.meta.env.VITE_API_URL || '';
+const API_BASE = envUrl ? (envUrl.endsWith('/api') ? envUrl : envUrl.replace(/\/$/, '') + '/api') : '/api';
 
 async function fetchJSON(url, options = {}) {
   const res = await fetch(`${API_BASE}${url}`, {
