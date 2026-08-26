@@ -1,88 +1,121 @@
-# RevivePay — AI Recovery Desk for Payments at Risk ⚡
+<div align="center">
+  <img src="frontend/public/favicon.svg" alt="RevivePay Logo" width="120" />
+  <h1>RevivePay</h1>
+  <p><strong>An Autonomous AI Recovery Desk for Payments at Risk</strong></p>
 
-![RevivePay Banner](https://img.shields.io/badge/Status-Live_Demo-emerald?style=for-the-badge)
-![Tech Stack](https://img.shields.io/badge/Stack-FastAPI_%7C_React_%7C_MongoDB-blue?style=for-the-badge)
-
-Revenue loss rarely happens in one clean step. A payment degrades, a checkout gets abandoned, a subscription fails, or an invoice goes overdue. 
-
-**RevivePay** is an autonomous, multi-agent AI system that closes the loop from detecting the problem, diagnosing it, choosing the right intervention, and recovering the money using real-world payment links.
-
----
-
-## 🎯 The Problem & Solution
-
-**The Prompt:** *Build an agent that detects revenue at risk, determines the right intervention, and executes a bounded recovery workflow: from payment failures and checkout abandonment to overdue receivables.*
-
-**The Solution:** Instead of just identifying the problem, RevivePay executes a **bounded recovery workflow**. It processes batches of failed payments through a sophisticated pipeline of AI agents, strictly governed by policy guardrails, and outputs measurable, recovered money with an end-to-end audit trail.
+  [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+  [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+  [![Razorpay](https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=3395FF)](https://razorpay.com/)
+</div>
 
 ---
 
-## 🧠 Multi-Agent Architecture
+## 📖 Overview
 
-RevivePay operates using three specialized Gemini AI agents, governed by a hard-coded policy guard:
+Revenue loss rarely happens in one clean step. A payment degrades, a checkout gets abandoned, a subscription fails, or an invoice goes overdue. **RevivePay** is a multi-agent AI system that closes the loop from detecting the problem to diagnosing it, choosing the right intervention, and actually recovering the money using real-world payment links.
 
-1. **Diagnosis Agent 🩺**: Analyzes raw payment failure codes or abandonment contexts to definitively classify the root cause (e.g., `insufficient_funds`, `technical_decline`, `checkout_abandoned`).
-2. **Value Agent 💰**: Evaluates the customer profile (LTV, repeat buyer status, cart value) to determine the maximum acceptable discount required to win the customer back.
-3. **Planner Agent 🗺️**: Synthesizes the diagnosis and value assessment to recommend a precise intervention plan (e.g., *Send standard payment link* vs. *Send 10% discounted payment link*).
-4. **Policy Guard 🛡️**: A deterministic compliance layer that intercepts the AI's plan. It enforces strict "stopping rules" (e.g., maximum contact caps, minimum threshold amounts, consent verification) and halts the workflow if a rule is violated.
-
-If the Policy Guard approves the plan, the **Orchestrator** generates a live, real-world **Razorpay Payment Link** (or discounted link) and executes the recovery.
+Rather than just identifying problems, RevivePay executes a **bounded recovery workflow**—processing batches of failed transactions, enforcing strict policy guardrails, and outputting measurable net-recovery metrics with a fully compliant audit trail.
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ Key Features
 
-- **Frontend:** React, Vite, Tailwind CSS
-- **Backend:** FastAPI, Python, Motor (Async MongoDB)
-- **Database:** MongoDB (Beanie ODM)
-- **AI Models:** Google Gemini (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`)
+- **Multi-Agent Diagnostics:** Uses a network of highly specialized LLMs (Google Gemini) to contextually diagnose payment failures and evaluate customer Lifetime Value (LTV).
+- **Automated Negotiation & Interventions:** Autonomously generates customized intervention plans, including strategically calculated discounts.
+- **Strict Policy Guardrails:** A deterministic rule engine intercepts the AI's plan to enforce maximum contact caps, minimum recovery thresholds, and consent compliance.
+- **Live Razorpay Integration:** Dynamically generates real Razorpay payment links (standard or discounted) based on the AI's final approved plan.
+- **Net Recovery Reporting:** Tracks and subtracts the cost of discounts and outreach, reporting honest gross vs. net recovery metrics on a beautiful dashboard.
+
+---
+
+## 🧠 Architecture & Workflow
+
+RevivePay's core engine is built on an orchestrated pipeline of specialized AI agents.
+
+```mermaid
+graph TD
+    A[Raw Case Data] --> B[Orchestrator]
+    
+    subgraph Multi-Agent AI Core
+    B -->|Phase 1| C[Diagnosis Agent 🩺]
+    C -->|Phase 2| D[Value Agent 💰]
+    D -->|Phase 3| E[Planner Agent 🗺️]
+    end
+
+    E -->|Proposed Plan| F{Policy Guard 🛡️}
+    
+    F -->|Approved| G[Razorpay Executor ⚡]
+    F -->|Blocked/Rejected| H[Stopped Safely 🛑]
+    
+    G --> I[Live Payment Link]
+```
+
+### The Agents
+1. **Diagnosis Agent 🩺**: Analyzes raw failure codes (e.g., `insufficient_funds`, `checkout_abandoned`) to determine the root cause.
+2. **Value Agent 💰**: Assesses customer history, cart value, and intent to calculate the maximum acceptable discount needed to win them back.
+3. **Planner Agent 🗺️**: Synthesizes the diagnosis and value limits to construct a precise, actionable intervention strategy.
+4. **Policy Guard 🛡️**: The deterministic safety layer. It strictly verifies the plan against hardcoded rules (e.g., max 2 contact attempts, explicit consent required) before execution.
+
+---
+
+## 💻 Tech Stack
+
+### Backend
+- **Framework:** FastAPI (Python 3.11+)
+- **Database:** MongoDB (Motor Async, Beanie ODM)
+- **AI Integration:** Google Gemini SDK (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`)
 - **Payments:** Razorpay API
 
+### Frontend
+- **Framework:** React + Vite
+- **Styling:** Tailwind CSS
+- **Icons:** Lucide React
+
 ---
 
-## 🚀 Setup & Execution
+## 🚀 Getting Started
 
 ### 1. Prerequisites
 - Node.js (v18+)
 - Python (3.11+)
-- MongoDB connection string
-- Razorpay API Keys
+- MongoDB Atlas Cluster (or local instance)
+- Razorpay Test Credentials
 - Google Gemini API Key
 
 ### 2. Backend Setup
+Navigate to the `backend` directory, create a virtual environment, and install dependencies:
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the `backend` directory:
-```env
-MONGODB_URI=your_mongodb_connection_string
-GEMINI_API_KEY_DIAGNOSIS=your_gemini_api_key
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+Set up your environment variables by copying the example file:
+```bash
+cp .env.example .env
 ```
+*(Make sure to add your MongoDB URI, Gemini API Keys, and Razorpay credentials to the `.env` file).*
 
-Start the backend server:
+Start the FastAPI server:
 ```bash
 uvicorn app.main:app --reload --port 5000
 ```
 
 ### 3. Frontend Setup
+Open a new terminal, navigate to the `frontend` directory, and start the Vite dev server:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 4. Running the Demo
-1. Make sure your database is seeded. You can run `python app/data/generate_synthetic_data.py` to seed 8 demo cases.
-2. Open the dashboard at `http://localhost:5173`.
-3. Click **Reset Cases** to pull the fresh batch.
-4. Click **Run Batch** to watch the AI evaluate, block, and execute live Razorpay links.
-5. Click on an "Approved" case in the table to view the audit trail, grab the generated Razorpay link, and pay it live to see the net recovery metrics update!
+### 4. Running a Live Recovery Batch
+1. **Seed the Database:** Run `python app/data/generate_synthetic_data.py` from the `backend` directory to seed the database with 8 live demo cases.
+2. **Launch Dashboard:** Open `http://localhost:5173` in your browser.
+3. **Execute AI Agents:** Click **"Run Batch"**. Watch the AI agents diagnose, evaluate, plan, and pass/block the cases in real-time.
+4. **Pay & Recover:** Click on an "Approved" case to view the audit trail, grab the generated Razorpay link, and pay it live to watch the Net Recovery metrics update!
 
----
-*Built for the Agentic AI Hackathon.*
+
