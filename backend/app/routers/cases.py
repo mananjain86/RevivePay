@@ -31,10 +31,12 @@ async def get_cases_summary():
 
         sim_recovered = sum(c.amount for c in simulated if c.status.value == 'recovered')
         sim_at_risk = sum(c.amount for c in simulated)
+        sim_net_recovered = sim_recovered - sum((c.discount_cost or 0) for c in simulated if c.status.value == 'recovered') - sum((c.contact_cost or 0) for c in simulated)
 
         real_recovered = sum(c.amount for c in real if c.status.value == 'recovered')
         real_total = len(real)
         real_paid = len([c for c in real if c.status.value == 'recovered'])
+        real_net_recovered = real_recovered - sum((c.discount_cost or 0) for c in real if c.status.value == 'recovered') - sum((c.contact_cost or 0) for c in real)
 
         status_counts = {}
         for c in all_cases:
@@ -47,11 +49,13 @@ async def get_cases_summary():
             "simulated": {
                 "at_risk": sim_at_risk,
                 "recovered": sim_recovered,
+                "net_recovered": sim_net_recovered,
                 "case_count": len(simulated),
                 "recovery_rate": f"{((sim_recovered / sim_at_risk) * 100):.1f}" if sim_at_risk > 0 else "0.0"
             },
             "verified": {
                 "recovered": real_recovered,
+                "net_recovered": real_net_recovered,
                 "total_demo_cases": real_total,
                 "paid_count": real_paid
             },

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # ─── Model constants ──────────────────────────────────────────────
 MODEL_DEFAULT = os.environ.get('GEMINI_MODEL', 'gemini-3.5-flash-lite')
-MODEL_FALLBACK = 'gemini-3.5-flash-lite'
+MODEL_FALLBACK = 'gemini-3.1-flash-lite'
 
 class GeminiClients:
     def __init__(self):
@@ -41,7 +41,8 @@ async def call_gemini(system_prompt: str, user_prompt: str, response_schema: dic
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
         response_mime_type="application/json",
-        response_schema=response_schema
+        response_schema=response_schema,
+        automatic_function_calling={"disable": True}
     )
     
     for attempt in range(2):

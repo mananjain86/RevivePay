@@ -26,8 +26,8 @@ export default function App() {
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center">
-                  <span className="text-white text-xl font-bold">R</span>
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-lg shadow-slate-200 flex items-center justify-center p-2 border border-slate-100">
+                  <img src="/favicon.svg" alt="RevivePay Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-slate-900">RevivePay</h1>

@@ -133,6 +133,10 @@ class Case(Document):
     last_contacted_at: Optional[datetime] = None
     max_contact_count: int = 2
 
+    # Costs for net recovery calculation
+    discount_cost: float = 0.0
+    contact_cost: float = 0.0
+
     status: CaseStatus = CaseStatus.NEW
 
     diagnosis: Optional[Diagnosis] = None

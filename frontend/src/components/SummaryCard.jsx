@@ -24,8 +24,8 @@ export default function SummaryCard({ refreshKey }) {
 
   if (loading || !stats) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
           <div key={i} className="shimmer h-32 rounded-2xl" />
         ))}
       </div>
@@ -40,13 +40,7 @@ export default function SummaryCard({ refreshKey }) {
       icon: '⚡',
       bgGradient: 'from-amber-500 to-amber-600',
     },
-    {
-      label: 'Simulated Recovery',
-      value: formatCurrency(stats.simulated?.recovered),
-      subtitle: `${stats.simulated?.recovery_rate || 0}% recovery rate`,
-      icon: '🔬',
-      bgGradient: 'from-blue-500 to-blue-600',
-    },
+
     {
       label: 'Verified Recovery',
       value: formatCurrency(stats.verified?.recovered),
@@ -69,7 +63,7 @@ export default function SummaryCard({ refreshKey }) {
   return (
     <div className="space-y-6">
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {metrics.map((metric, index) => (
           <div 
             key={index} 
@@ -92,29 +86,7 @@ export default function SummaryCard({ refreshKey }) {
       </div>
 
       {/* Detailed Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Simulated */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm border-l-4 border-l-blue-500">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-2 h-2 rounded-full bg-blue-500 pulse-dot"></div>
-            <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-              Simulated Batch Recovery
-            </h3>
-          </div>
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className="text-3xl font-black text-slate-900">
-              {formatCurrency(stats.simulated?.recovered)}
-            </span>
-            <span className="text-sm text-slate-500">
-              / {formatCurrency(stats.simulated?.at_risk)} at risk
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Seeded deterministic outcomes · stable across runs
-          </p>
-        </div>
-
-        {/* Verified */}
+      <div className="grid grid-cols-1 gap-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm border-l-4 border-l-emerald-500">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
@@ -122,17 +94,25 @@ export default function SummaryCard({ refreshKey }) {
               Verified Razorpay Recovery
             </h3>
           </div>
-          <div className="flex items-baseline gap-3 mb-2">
-            <span className="text-3xl font-black text-slate-900">
-              {formatCurrency(stats.verified?.recovered)}
-            </span>
-            <span className="text-sm text-slate-500">
-              {stats.verified?.paid_count || 0} of {stats.verified?.total_demo_cases || 0} paid
-            </span>
+          <div className="flex items-center gap-6 mb-2">
+            <div>
+              <span className="text-3xl font-black text-slate-900">
+                {formatCurrency(stats.verified?.recovered)}
+              </span>
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Gross</p>
+            </div>
+            <div className="text-slate-200 text-3xl font-light">|</div>
+            <div>
+              <span className="text-3xl font-black text-emerald-600">
+                {formatCurrency(stats.verified?.net_recovered)}
+              </span>
+              <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide">Net (After Costs)</p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500">
-            Real Razorpay test-mode · webhook-confirmed
+          <p className="text-xs text-slate-500 mt-2">
+            {stats.verified?.paid_count || 0} of {stats.verified?.total_demo_cases || 0} paid · Real Razorpay test-mode
           </p>
+
         </div>
       </div>
 

@@ -11,6 +11,12 @@ def execute_simulated(case_data: Case, plan: Plan) -> dict:
         sim_reference = f"sim_plink_{str(case_data.id)[-8:]}"
         payment_outcome = rng()
 
+        discount_cost = 0.0
+        if recommendation == 'OFFER_DISCOUNT' and plan.discount_requested_pct and plan.discount_requested_pct > 0:
+            discount_multiplier = 1.0 - (plan.discount_requested_pct / 100.0)
+            final_amount = round(case_data.amount * discount_multiplier)
+            discount_cost = case_data.amount - final_amount
+
         payment_link_status = None
         status = None
 
@@ -35,7 +41,9 @@ def execute_simulated(case_data: Case, plan: Plan) -> dict:
             ),
             "status": status,
             "contact_count": case_data.contact_count + 1,
-            "last_contacted_at": now
+            "last_contacted_at": now,
+            "discount_cost": discount_cost,
+            "contact_cost": (case_data.contact_count + 1) * 2.0
         }
 
     if recommendation == 'SEND_REMINDER':
@@ -50,7 +58,8 @@ def execute_simulated(case_data: Case, plan: Plan) -> dict:
             ),
             "status": CaseStatus.LINK_CREATED,
             "contact_count": case_data.contact_count + 1,
-            "last_contacted_at": now
+            "last_contacted_at": now,
+            "contact_cost": (case_data.contact_count + 1) * 2.0
         }
 
     return {

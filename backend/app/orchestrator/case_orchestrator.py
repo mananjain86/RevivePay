@@ -154,6 +154,10 @@ async def handle_approved(case_doc: Case, plan):
         case_doc.contact_count = executor_result['contact_count']
     if 'last_contacted_at' in executor_result:
         case_doc.last_contacted_at = executor_result['last_contacted_at']
+    if 'discount_cost' in executor_result:
+        case_doc.discount_cost = executor_result['discount_cost']
+    if 'contact_cost' in executor_result:
+        case_doc.contact_cost = executor_result['contact_cost']
 
     output = executor_result['execution'].model_dump(mode='json')
     output['final_status'] = executor_result['status'].value if executor_result['status'] else None

@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 all_cases = [
     {
-        "case_type": CaseType.FAILED_PAYMENT, "amount": 2499, "customer_id": 'demo-clean',
-        "is_repeat_buyer": True, "attempt_number": 1, "failure_reason_raw": 'UPI payment failed - bank timeout',
+        "case_type": CaseType.FAILED_PAYMENT, "amount": 15000, "customer_id": 'sim-success-target',
+        "is_repeat_buyer": True, "attempt_number": 1, "failure_reason_raw": 'High value UPI payment failed',
         "has_recovery_consent": True, "contact_count": 0, "max_contact_count": 2, "demo_case": True, "status": CaseStatus.NEW
     },
     {
@@ -27,18 +27,28 @@ all_cases = [
     },
     {
         "case_type": CaseType.FAILED_PAYMENT, "amount": 1200, "customer_id": 'edge-no-consent',
-        "is_repeat_buyer": False, "attempt_number": 1, "failure_reason_raw": 'Insufficient funds',
-        "has_recovery_consent": False, "contact_count": 0, "max_contact_count": 2, "demo_case": False, "status": CaseStatus.NEW
+        "is_repeat_buyer": False, "attempt_number": 1, "failure_reason_raw": 'Customer denied recovery consent',
+        "has_recovery_consent": False, "contact_count": 0, "max_contact_count": 2, "demo_case": True, "status": CaseStatus.NEW
     },
     {
-        "case_type": CaseType.ABANDONED_CHECKOUT, "amount": 45, "customer_id": 'edge-low-value',
-        "is_repeat_buyer": True, "attempt_number": 1, "failure_reason_raw": 'Abandoned checkout',
-        "has_recovery_consent": True, "contact_count": 0, "max_contact_count": 2, "demo_case": False, "status": CaseStatus.NEW
+        "case_type": CaseType.FAILED_PAYMENT, "amount": 99, "customer_id": 'edge-too-small',
+        "is_repeat_buyer": False, "attempt_number": 1, "failure_reason_raw": 'Insufficient funds for low value item',
+        "has_recovery_consent": True, "contact_count": 0, "max_contact_count": 2, "demo_case": True, "status": CaseStatus.NEW
     },
     {
-        "case_type": CaseType.FAILED_PAYMENT, "amount": 800, "customer_id": 'edge-reminder',
-        "is_repeat_buyer": False, "attempt_number": 1, "failure_reason_raw": 'Network error during payment',
-        "has_recovery_consent": True, "contact_count": 0, "max_contact_count": 2, "demo_case": False, "status": CaseStatus.NEW
+        "case_type": CaseType.ABANDONED_CHECKOUT, "amount": 1000, "customer_id": 'edge-max-contact',
+        "is_repeat_buyer": False, "attempt_number": 1, "failure_reason_raw": 'Abandoned cart',
+        "has_recovery_consent": True, "contact_count": 2, "max_contact_count": 2, "demo_case": True, "status": CaseStatus.NEW
+    },
+    {
+        "case_type": CaseType.FAILED_PAYMENT, "amount": 3500, "customer_id": 'demo-standard-2',
+        "is_repeat_buyer": False, "attempt_number": 1, "failure_reason_raw": 'UPI timeout',
+        "has_recovery_consent": True, "contact_count": 0, "max_contact_count": 2, "demo_case": True, "status": CaseStatus.NEW
+    },
+    {
+        "case_type": CaseType.ABANDONED_CHECKOUT, "amount": 4500, "customer_id": 'demo-standard-3',
+        "is_repeat_buyer": True, "attempt_number": 1, "failure_reason_raw": 'Distracted during checkout',
+        "has_recovery_consent": True, "contact_count": 0, "max_contact_count": 2, "demo_case": True, "status": CaseStatus.NEW
     }
 ]
 
