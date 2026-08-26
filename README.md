@@ -35,7 +35,7 @@ If the Policy Guard approves the plan, the **Orchestrator** generates a live, re
 - **Frontend:** React, Vite, Tailwind CSS
 - **Backend:** FastAPI, Python, Motor (Async MongoDB)
 - **Database:** MongoDB (Beanie ODM)
-- **AI Models:** Google Gemini (`gemini-3.1-flash-lite`, `gemini-1.5-flash`)
+- **AI Models:** Google Gemini (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`)
 - **Payments:** Razorpay API
 
 ---
