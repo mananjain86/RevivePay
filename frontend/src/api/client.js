@@ -43,3 +43,22 @@ export const rejectCase = (id) =>
 // Jobs
 export const getJobStatus = (jobId) =>
   fetchJSON(`/jobs/${jobId}`);
+
+// Sweep
+export const runSweep = () =>
+  fetchJSON('/sweep/run', { method: 'POST' });
+
+export const getSweepResults = () =>
+  fetchJSON('/sweep/results');
+
+export const applySweepWinner = (thresholds) =>
+  fetchJSON('/sweep/apply', { method: 'POST', body: JSON.stringify(thresholds) });
+
+export const revertThresholds = () =>
+  fetchJSON('/sweep/revert', { method: 'POST' });
+
+export const getActiveConfig = () =>
+  fetchJSON('/sweep/active-config');
+
+export const getPreApplySummary = () =>
+  fetchJSON('/sweep/pre-apply-summary');
