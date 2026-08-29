@@ -142,10 +142,8 @@ async def process_case(case_id: str) -> Case:
 async def handle_approved(case_doc: Case, plan):
     case_doc.status = CaseStatus.APPROVED
 
-    if case_doc.demo_case:
-        executor_result = await execute_razorpay(case_doc, plan)
-    else:
-        executor_result = execute_simulated(case_doc, plan)
+    # User mandated Razorpay strictly
+    executor_result = await execute_razorpay(case_doc, plan)
 
     case_doc.execution = executor_result['execution']
     case_doc.status = executor_result['status']

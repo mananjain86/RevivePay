@@ -33,11 +33,11 @@ gemini_clients = GeminiClients()
 
 async def call_gemini(system_prompt: str, user_prompt: str, response_schema: dict = None, model_name: str = MODEL_DEFAULT, agent_name: str = 'diagnosis') -> dict:
     """
-    Call Gemini with structured JSON output and retry-once-with-backoff.
+    Call Gemini with structured JSON output and retry-with-backoff.
+    Switches to fallback model on retries without changing the API key.
     """
     client = gemini_clients.get_client(agent_name)
 
-    # We use GenerateContentConfig for response schema
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
         response_mime_type="application/json",
@@ -45,8 +45,10 @@ async def call_gemini(system_prompt: str, user_prompt: str, response_schema: dic
         automatic_function_calling={"disable": True}
     )
     
-    for attempt in range(2):
+    max_attempts = 3
+    for attempt in range(max_attempts):
         active_model_name = model_name if attempt == 0 else (MODEL_FALLBACK if model_name == MODEL_DEFAULT else model_name)
+        
         try:
             # Using async client
             result = await client.aio.models.generate_content(
@@ -56,8 +58,11 @@ async def call_gemini(system_prompt: str, user_prompt: str, response_schema: dic
             )
             return json.loads(result.text)
         except Exception as e:
-            if attempt == 0:
-                await asyncio.sleep(1.5)
-                logger.warning(f"[GeminiClient] Attempt 1 failed with model {active_model_name}, retrying: {str(e)}")
+            if attempt < max_attempts - 1:
+                # Exponential backoff: e.g., 2s, then 4s
+                sleep_time = 2.0 * (attempt + 1)
+                logger.warning(f"[GeminiClient] Attempt {attempt + 1} failed for {agent_name} with model {active_model_name}. Retrying in {sleep_time}s with fallback model: {str(e)}")
+                await asyncio.sleep(sleep_time)
             else:
+                logger.error(f"[GeminiClient] All {max_attempts} attempts failed for {agent_name}.")
                 raise e
