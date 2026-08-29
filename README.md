@@ -27,6 +27,7 @@ Rather than just identifying problems, RevivePay executes a **bounded recovery w
 - **Strict Policy Guardrails:** A deterministic rule engine intercepts the AI's plan to enforce maximum contact caps, minimum recovery thresholds, and consent compliance.
 - **Live Razorpay Integration:** Dynamically generates real Razorpay payment links (standard or discounted) based on the AI's final approved plan.
 - **Net Recovery Reporting:** Tracks and subtracts the cost of discounts and outreach, reporting honest gross vs. net recovery metrics on a beautiful dashboard.
+- **Threshold Sweep Engine:** Automated experiment harness that tests hundreds of policy parameter combinations in-memory to find the optimal ruleset that maximizes net recovery, with one-click application to the live system.
 
 ---
 
@@ -57,6 +58,16 @@ graph TD
 2. **Value Agent 💰**: Assesses customer history, cart value, and intent to calculate the maximum acceptable discount needed to win them back.
 3. **Planner Agent 🗺️**: Synthesizes the diagnosis and value limits to construct a precise, actionable intervention strategy.
 4. **Policy Guard 🛡️**: The deterministic safety layer. It strictly verifies the plan against hardcoded rules (e.g., max 2 contact attempts, explicit consent required) before execution.
+
+---
+
+## 📈 Threshold Sweep & Optimization
+
+Instead of guessing the right policy thresholds (like "max 3 retries" or "discounts capped at 5%"), RevivePay includes a built-in **Threshold Sweep Engine**.
+
+1. **Test Hundreds of Combinations:** The engine systematically evaluates ~264 combinations of policy parameters against your batch of cases in-memory.
+2. **Find the Winner:** It ranks every combination by projected **Net Recovered Amount** (Gross minus Discount and Contact costs).
+3. **Apply & Compare:** With one click, apply the winning thresholds to the live Policy Guard. Re-run your batch to generate a real-world Before & After comparison showing the exact revenue improvement.
 
 ---
 
