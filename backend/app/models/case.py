@@ -53,7 +53,9 @@ class ValueAssessment(BaseModel):
 class Recommendation(str, Enum):
     CREATE_PAYMENT_LINK = 'CREATE_PAYMENT_LINK'
     SEND_REMINDER = 'SEND_REMINDER'
-    OFFER_DISCOUNT = 'OFFER_DISCOUNT'
+    OFFER_DISCOUNT_3 = 'OFFER_DISCOUNT_3'
+    OFFER_DISCOUNT_5 = 'OFFER_DISCOUNT_5'
+    OFFER_DISCOUNT_8 = 'OFFER_DISCOUNT_8'
     ESCALATE_TO_HUMAN = 'ESCALATE_TO_HUMAN'
     DO_NOT_CONTACT = 'DO_NOT_CONTACT'
 
@@ -118,6 +120,13 @@ class AuditLogEntry(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     output: Optional[Any] = None
 
+class BanditMeta(BaseModel):
+    action_chosen: str
+    was_exploration: bool
+    avg_reward_at_time: float
+    llm_original_recommendation: str
+    override_reasoning: str
+
 class Case(Document):
     case_type: CaseType
     amount: float
@@ -146,6 +155,7 @@ class Case(Document):
     fallback_policy_check: Optional[FallbackPolicyCheck] = None
     merchant_approval: Optional[MerchantApproval] = Field(default_factory=MerchantApproval)
     execution: Optional[Execution] = Field(default_factory=Execution)
+    bandit_meta: Optional[BanditMeta] = None
 
     demo_case: bool = False
 

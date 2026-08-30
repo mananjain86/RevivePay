@@ -62,3 +62,13 @@ export const getActiveConfig = () =>
 
 export const getPreApplySummary = () =>
   fetchJSON('/sweep/pre-apply-summary');
+
+// Bandit
+export const getBanditScoreboard = () =>
+  fetchJSON('/bandit/scoreboard');
+
+export const resetBandit = () =>
+  fetchJSON('/bandit/reset', { method: 'POST' });
+
+export const runABComparison = (numCases = 200, batchSize = 20, seed = 42) =>
+  fetchJSON(`/bandit/ab-comparison?num_cases=${numCases}&batch_size=${batchSize}&seed=${seed}`, { method: 'POST' });

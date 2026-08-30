@@ -41,7 +41,7 @@ FACTORY_DEFAULTS = PolicyThresholds(
     max_attempts=3,
     min_recoverable_amount=100.0,
     auto_approve_discount_max_pct=0.0,
-    approval_discount_max_pct=5.0,
+    approval_discount_max_pct=8.0,
     min_confidence_auto_approve=0.6,
     label="factory_defaults",
 )
@@ -225,12 +225,20 @@ def _simulate_execution(case_data: Case, plan: Plan) -> dict:
     rng = create_seeded_rng(str(case_data.id))
     recommendation = plan.recommendation.value if plan.recommendation else None
 
-    if recommendation in ('CREATE_PAYMENT_LINK', 'OFFER_DISCOUNT'):
+    recoverable_actions = (
+        'CREATE_PAYMENT_LINK',
+        'OFFER_DISCOUNT_3', 'OFFER_DISCOUNT_5', 'OFFER_DISCOUNT_8',
+        # Legacy compat
+        'OFFER_DISCOUNT',
+    )
+
+    if recommendation in recoverable_actions:
         payment_outcome = rng()
 
         discount_cost = 0.0
-        if recommendation == 'OFFER_DISCOUNT' and plan.discount_requested_pct and plan.discount_requested_pct > 0:
-            discount_multiplier = 1.0 - (plan.discount_requested_pct / 100.0)
+        discount_pct = plan.discount_requested_pct or 0.0
+        if discount_pct > 0:
+            discount_multiplier = 1.0 - (discount_pct / 100.0)
             final_amount = round(case_data.amount * discount_multiplier)
             discount_cost = case_data.amount - final_amount
 
@@ -440,7 +448,7 @@ if __name__ == "__main__":
     # Check that factory defaults are in the grid
     has_defaults = any(
         t.max_attempts == 3 and t.min_recoverable_amount == 100 and
-        t.auto_approve_discount_max_pct == 0 and t.approval_discount_max_pct == 5 and
+        t.auto_approve_discount_max_pct == 0 and t.approval_discount_max_pct == 8.0 and
         t.min_confidence_auto_approve == 0.6
         for t in grid
     )

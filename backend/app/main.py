@@ -14,6 +14,7 @@ load_dotenv()
 
 from app.models.case import Case
 from app.models.processed_webhook_event import ProcessedWebhookEvent
+from app.models.bandit_arm import BanditArm
 from app.routers import api_router
 
 logging.basicConfig(level=logging.INFO)
@@ -31,7 +32,7 @@ async def lifespan(app: FastAPI):
         import certifi
         client = AsyncIOMotorClient(uri, tlsCAFile=certifi.where())
         db = client.get_database('revivepay')
-        await init_beanie(database=db, document_models=[Case, ProcessedWebhookEvent])
+        await init_beanie(database=db, document_models=[Case, ProcessedWebhookEvent, BanditArm])
         logger.info("[MongoDB] Connected successfully")
     except Exception as e:
         logger.error(f"[MongoDB] Connection failed: {str(e)}")

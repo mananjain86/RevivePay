@@ -5,8 +5,8 @@ from app.models.case import Case, Diagnosis, ValueAssessment, Plan, Recommendati
 logger = logging.getLogger(__name__)
 
 VALID_RECOMMENDATIONS = [
-    'CREATE_PAYMENT_LINK', 'SEND_REMINDER', 'OFFER_DISCOUNT',
-    'ESCALATE_TO_HUMAN', 'DO_NOT_CONTACT'
+    'CREATE_PAYMENT_LINK', 'SEND_REMINDER', 'OFFER_DISCOUNT_3', 'OFFER_DISCOUNT_5',
+    'OFFER_DISCOUNT_8', 'ESCALATE_TO_HUMAN', 'DO_NOT_CONTACT'
 ]
 
 PLANNER_SCHEMA = {
@@ -14,7 +14,7 @@ PLANNER_SCHEMA = {
     "properties": {
         "recommendation": {
             "type": "string",
-            "description": "The recommended recovery action. Must be exactly one of: CREATE_PAYMENT_LINK, SEND_REMINDER, OFFER_DISCOUNT, ESCALATE_TO_HUMAN, DO_NOT_CONTACT",
+            "description": "The recommended recovery action. Must be exactly one of: CREATE_PAYMENT_LINK, SEND_REMINDER, OFFER_DISCOUNT_3, OFFER_DISCOUNT_5, OFFER_DISCOUNT_8, ESCALATE_TO_HUMAN, DO_NOT_CONTACT",
             "enum": VALID_RECOMMENDATIONS
         },
         "reasoning": {
@@ -27,7 +27,7 @@ PLANNER_SCHEMA = {
         },
         "discount_requested_pct": {
             "type": "number",
-            "description": "Discount percentage (0-100). Should be 0 unless recommendation is OFFER_DISCOUNT"
+            "description": "Discount percentage (0-100). Should be the exact number from the tier chosen (3, 5, or 8) if a discount is recommended, otherwise 0."
         }
     },
     "required": ["recommendation", "reasoning", "confidence", "discount_requested_pct"]
@@ -37,13 +37,15 @@ SYSTEM_PROMPT = """You are a recovery action planner for an Indian e-commerce pl
 
 Given the diagnosis (why a payment failed) and the value assessment (how important this case is), recommend ONE recovery action.
 
-You may ONLY choose from these exact 5 actions — never invent a sixth:
+You may ONLY choose from these exact actions — never invent another:
 
 1. CREATE_PAYMENT_LINK — Generate a fresh Razorpay payment link for the customer. Best for transient failures, first attempts, or when a simple retry is likely to work.
 2. SEND_REMINDER — Send a reminder message to the customer. Best for abandoned checkouts or when waiting before a payment link makes sense.
-3. OFFER_DISCOUNT — Offer a percentage discount to incentivize completion. ONLY use this for high-value cases where the customer needs a nudge (e.g., abandoned cart with hesitation). Specify the discount_requested_pct (1-10 range typically).
-4. ESCALATE_TO_HUMAN — Route this case to a human agent for manual review. Use when the situation is complex, ambiguous, or when you have low confidence.
-5. DO_NOT_CONTACT — Do not attempt recovery. Use ONLY for cases where contact would be inappropriate (e.g., clear fraud signals, customer explicitly cancelled).
+3. OFFER_DISCOUNT_3 — Offer a 3% discount to incentivize completion.
+4. OFFER_DISCOUNT_5 — Offer a 5% discount to incentivize completion.
+5. OFFER_DISCOUNT_8 — Offer an 8% discount to incentivize completion. ONLY use for very high-value cases where the customer needs a strong nudge.
+6. ESCALATE_TO_HUMAN — Route this case to a human agent for manual review. Use when the situation is complex, ambiguous, or when you have low confidence.
+7. DO_NOT_CONTACT — Do not attempt recovery. Use ONLY for cases where contact would be inappropriate (e.g., clear fraud signals, customer explicitly cancelled).
 
 Guidelines:
 - For first-attempt transient failures with high value: CREATE_PAYMENT_LINK (high confidence)
@@ -106,7 +108,13 @@ def validate_plan(result: dict) -> Plan:
         discount_requested_pct = 0.0
     discount_requested_pct = max(0.0, min(100.0, float(discount_requested_pct)))
 
-    if recommendation != 'OFFER_DISCOUNT':
+    if recommendation == 'OFFER_DISCOUNT_3':
+        discount_requested_pct = 3.0
+    elif recommendation == 'OFFER_DISCOUNT_5':
+        discount_requested_pct = 5.0
+    elif recommendation == 'OFFER_DISCOUNT_8':
+        discount_requested_pct = 8.0
+    else:
         discount_requested_pct = 0.0
 
     if not isinstance(reasoning, str) or not reasoning:

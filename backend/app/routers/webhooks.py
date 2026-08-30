@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.models.case import Case, CaseStatus, PaymentLinkStatus, AuditLogEntry
 from app.models.processed_webhook_event import ProcessedWebhookEvent
+from app.orchestrator.case_orchestrator import record_bandit_reward
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ async def razorpay_webhook(
                     output={"event_type": event_type, "payment_link_id": link_id, "status": "recovered"}
                 ))
                 await case_doc.save()
+                await record_bandit_reward(case_doc)
                 logger.info(f"[Webhook] Case {case_doc.id} → recovered (payment_link.paid)")
                 
         elif event_type in ['payment_link.expired', 'payment_link.cancelled']:
@@ -94,6 +96,7 @@ async def razorpay_webhook(
                     output={"event_type": event_type, "payment_link_id": link_id, "status": "unrecovered_expired"}
                 ))
                 await case_doc.save()
+                await record_bandit_reward(case_doc)
                 logger.info(f"[Webhook] Case {case_doc.id} → unrecovered_expired ({event_type})")
 
         # 5. Return 200 quickly

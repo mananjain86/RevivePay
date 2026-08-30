@@ -8,7 +8,7 @@ _FACTORY_DEFAULTS = {
     "max_attempts": 3,
     "min_recoverable_amount": 100,       # rupees
     "auto_approve_discount_max_pct": 0,
-    "approval_discount_max_pct": 5,
+    "approval_discount_max_pct": 8.0,
     "min_confidence_auto_approve": 0.6,
 }
 

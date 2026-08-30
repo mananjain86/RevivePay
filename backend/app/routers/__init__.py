@@ -4,6 +4,7 @@ from .approvals import router as approvals_router
 from .jobs import router as jobs_router
 from .webhooks import router as webhooks_router
 from .sweep import router as sweep_router
+from .bandit import router as bandit_router
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(cases_router)
@@ -11,3 +12,4 @@ api_router.include_router(approvals_router)
 api_router.include_router(jobs_router)
 api_router.include_router(webhooks_router)
 api_router.include_router(sweep_router)
+api_router.include_router(bandit_router)

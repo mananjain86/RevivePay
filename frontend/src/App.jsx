@@ -5,6 +5,7 @@ import CaseDetailTrace from './components/CaseDetailTrace';
 import ApprovalQueue from './components/ApprovalQueue';
 import BatchRunProgress from './components/BatchRunProgress';
 import ThresholdSweep from './components/ThresholdSweep';
+import BanditDashboard from './components/BanditDashboard';
 
 export default function App() {
   const [selectedCaseId, setSelectedCaseId] = useState(null);
@@ -68,6 +69,16 @@ export default function App() {
                 >
                   Sweep
                 </button>
+                <button
+                  onClick={() => setTab('bandit')}
+                  className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    tab === 'bandit'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Bandit
+                </button>
               </nav>
             </div>
           </div>
@@ -82,8 +93,10 @@ export default function App() {
             <CaseTable onSelectCase={setSelectedCaseId} refreshKey={refreshKey} />
           ) : tab === 'approvals' ? (
             <ApprovalQueue refreshKey={refreshKey} onRefresh={refresh} />
-          ) : (
+          ) : tab === 'sweep' ? (
             <ThresholdSweep onRefresh={refresh} />
+          ) : (
+            <BanditDashboard refreshKey={refreshKey} onRefresh={refresh} />
           )}
         </main>
       </div>

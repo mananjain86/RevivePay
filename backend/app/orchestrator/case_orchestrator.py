@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from beanie.odm.operators.update.general import Set
 from bson import ObjectId
 
-from app.models.case import Case, CaseStatus, AuditLogEntry
+from app.models.case import Case, CaseStatus, AuditLogEntry, BanditMeta, Recommendation
 from app.agents.diagnosis_agent import diagnose_case
 from app.agents.value_agent import assess_value
 from app.agents.planner_agent import plan_recovery
@@ -12,6 +12,7 @@ from app.policy.policy_guard import check_policy
 from app.execution.simulated_executor import execute_simulated
 from app.execution.razorpay_executor import execute_razorpay
 from app.data.demo_fixtures import demo_fixtures
+from app.bandit.bandit_engine import select_action, record_reward
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,31 @@ async def process_case(case_id: str) -> Case:
             logger.info(f"[Orchestrator] DEMO_MODE: Using fixture plan for {case_doc.customer_id}")
         else:
             plan = await plan_recovery(case_doc, diagnosis, value_assessment)
+            
+            # Post-Plan Bandit Override
+            if diagnosis and diagnosis.failure_class and diagnosis.failure_class.value != 'unknown':
+                bandit_action, was_exploration, current_avg_reward = await select_action(diagnosis.failure_class)
+                
+                if plan.recommendation and plan.recommendation.value != bandit_action:
+                    llm_original = plan.recommendation.value
+                    plan.recommendation = Recommendation(bandit_action)
+                    
+                    if bandit_action == 'OFFER_DISCOUNT_3':
+                        plan.discount_requested_pct = 3.0
+                    elif bandit_action == 'OFFER_DISCOUNT_5':
+                        plan.discount_requested_pct = 5.0
+                    elif bandit_action == 'OFFER_DISCOUNT_8':
+                        plan.discount_requested_pct = 8.0
+                    else:
+                        plan.discount_requested_pct = 0.0
+                        
+                    case_doc.bandit_meta = BanditMeta(
+                        action_chosen=bandit_action,
+                        was_exploration=was_exploration,
+                        avg_reward_at_time=current_avg_reward,
+                        llm_original_recommendation=llm_original,
+                        override_reasoning=f"Bandit Override: The AI suggested {llm_original}, but the bandit selected {bandit_action} based on observed net recovery."
+                    )
 
         case_doc.plan = plan
         case_doc.status = CaseStatus.PLANNED
@@ -110,6 +136,7 @@ async def process_case(case_id: str) -> Case:
                 output={"reason": policy_result.reason}
             ))
             await case_doc.save()
+            await record_bandit_reward(case_doc)
             logger.info(f"[Orchestrator] Case {case_doc.id} → stopped_safely: {policy_result.reason}")
             return case_doc
         elif decision == 'BLOCKED_NO_CONSENT':
@@ -120,12 +147,14 @@ async def process_case(case_id: str) -> Case:
                 output={"reason": policy_result.reason}
             ))
             await case_doc.save()
+            await record_bandit_reward(case_doc)
             logger.info(f"[Orchestrator] Case {case_doc.id} → blocked_no_consent")
             return case_doc
         else:
             logger.error(f"[Orchestrator] Unknown policy decision: {decision}")
             case_doc.status = CaseStatus.STOPPED_SAFELY
             await case_doc.save()
+            await record_bandit_reward(case_doc)
             return case_doc
 
     except Exception as e:
@@ -137,7 +166,23 @@ async def process_case(case_id: str) -> Case:
             output={"error": str(e)}
         ))
         await case_doc.save()
+        await record_bandit_reward(case_doc)
         return case_doc
+
+async def record_bandit_reward(case_doc: Case):
+    if not case_doc.bandit_meta or not case_doc.diagnosis or not case_doc.diagnosis.failure_class:
+        return
+        
+    action = case_doc.bandit_meta.action_chosen
+    failure_class = case_doc.diagnosis.failure_class
+    
+    if case_doc.status == CaseStatus.RECOVERED:
+        net_recovered = case_doc.amount - case_doc.discount_cost - case_doc.contact_cost
+        reward = max(0.0, net_recovered / case_doc.amount) if case_doc.amount > 0 else 0.0
+    else:
+        reward = 0.0
+        
+    await record_reward(failure_class, action, reward)
 
 async def handle_approved(case_doc: Case, plan):
     case_doc.status = CaseStatus.APPROVED
@@ -170,6 +215,10 @@ async def handle_approved(case_doc: Case, plan):
 
     await case_doc.save()
     logger.info(f"[Orchestrator] Case {case_doc.id} → {case_doc.status.value} ({case_doc.execution.executor_type.value})")
+    
+    if case_doc.status in (CaseStatus.RECOVERED, CaseStatus.UNRECOVERED_EXPIRED, CaseStatus.STOPPED_SAFELY, CaseStatus.EXECUTION_FAILED):
+        await record_bandit_reward(case_doc)
+        
     return case_doc
 
 async def handle_rejected_fallback(case_doc: Case, original_plan, original_policy_result):
@@ -226,11 +275,13 @@ async def handle_rejected_fallback(case_doc: Case, original_plan, original_polic
             output={"reason": fallback_policy_result.reason}
         ))
         await case_doc.save()
+        await record_bandit_reward(case_doc)
         logger.info(f"[Orchestrator] Fallback for case {case_doc.id} → stopped_safely")
         return case_doc
     else:
         case_doc.status = CaseStatus.STOPPED_SAFELY
         await case_doc.save()
+        await record_bandit_reward(case_doc)
         return case_doc
 
 async def resolve_approval(case_id: str, approved_by_merchant: bool) -> Case:
@@ -263,5 +314,6 @@ async def resolve_approval(case_id: str, approved_by_merchant: bool) -> Case:
             output={"approved_by_merchant": False}
         ))
         await case_doc.save()
+        await record_bandit_reward(case_doc)
         logger.info(f"[Orchestrator] Case {case_id} → stopped_safely (merchant rejected)")
         return case_doc
